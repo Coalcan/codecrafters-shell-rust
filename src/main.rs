@@ -28,16 +28,16 @@ fn main() {
                 //execute command
             } else {
                 println!("{}: command not found", command);
-                println!("Type: {}", std::any::type_name::<&str>());
+                //println!("Type: {}", std::any::type_name::<&str>());
             }
 
             print!("$ ");
             stdout.flush().unwrap();
         }
         //handle empty, no command, not working, improperly handling empty variable
-        else {
-            println!("Empty command");
-        }
+        // else {
+        //     println!("Empty command");
+        // }
         
 
     }
