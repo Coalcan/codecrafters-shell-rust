@@ -2,13 +2,33 @@
 use std::io::{self, Write, BufRead};
 
 
-// fn is_command(command: &str) -> &str {
-//     if command == "exit" {
-//         "valid"
-//     } else {
-//         "invalid"
-//     }
-// }
+fn command_execute(command: &str) -> &str {
+//create pattern to match string to different commands
+//split the commadn its a vector of string splices
+//let command: Vec<&str> = s.split(' ').collect()
+// use match pattern with copmmand[0]
+// return the command output
+    let words: Vec<&str> = command.split(' ').collect();
+
+    match words.first().copied() {
+        Some("exit") => {
+            return "exit"
+        }
+        Some("echo") => {
+            println!("{}", &words[1..].join(" "));
+            return "echo"
+        }
+        Some(_) => {
+            println!("{}: command not found", command);
+            return "invalid"
+        }
+        None => {
+            println!("Empty command");
+            return "invalid"
+        }
+
+    }
+}
 
 fn main() {
     // TODO: Uncomment the code below to pass the first stage
@@ -30,10 +50,9 @@ fn main() {
                     stdout.flush().unwrap();
                     continue;
                 }
-                if line.trim() == "exit" {
+                let command_result = command_execute(&line);
+                if command_result == "exit" {
                     break;
-                } else {
-                    println!("{}: command not found", line);
                 }
                 print!("$ ");
                 stdout.flush().unwrap();
@@ -42,9 +61,26 @@ fn main() {
                 println!("Error reading input");
             }
         }
-        //handle empty, no command, not working, improperly handling empty variable
-        // else {
-        //     println!("Empty command");
+
+
+        // match line {
+        //     Ok(line) => {
+        //         if line.trim().is_empty() {
+        //             print!("$ ");
+        //             stdout.flush().unwrap();
+        //             continue;
+        //         }
+        //         if line.trim() == "exit" {
+        //             break;
+        //         } else {
+        //             println!("{}: command not found", line);
+        //         }
+        //         print!("$ ");
+        //         stdout.flush().unwrap();
+        //     }
+        //     Err(_) => {
+        //         println!("Error reading input");
+        //     }
         // }
         
 
