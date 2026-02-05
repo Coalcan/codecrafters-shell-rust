@@ -1,5 +1,21 @@
 #[allow(unused_imports)]
 use std::io::{self, Write, BufRead};
+use std::collections::HashSet;
+use std::sync::OnceLock;
+
+static SHELL_COMMANDS: OnceLock<HashSet<&str>> = OnceLock::new();
+
+fn get_shell_commands() -> &'static HashSet<&'static str> {
+    SHELL_COMMANDS.get_or_init(|| {
+        HashSet::from([
+            "exit",
+            "echo",
+            "type",
+        ])
+    })
+}
+
+
 
 
 fn command_execute(command: &str) -> &str {
@@ -18,8 +34,22 @@ fn command_execute(command: &str) -> &str {
             println!("{}", &words[1..].join(" "));
             return "echo"
         }
+        Some("type") => {
+            if let Some(command) = words.get(1) {
+                if get_shell_commands().contains(command) {
+                    println!("{} is a shell builtin", command);
+                    return "type"
+                } else {
+                    println!("{}: not found", command);
+                    return "invalid"
+                }
+            } else {
+                println!("type: missing argument");
+                return "invalid"
+            }
+        }
         Some(_) => {
-            println!("{}: command not found", command);
+            println!("{}: not found", command);
             return "invalid"
         }
         None => {
@@ -45,15 +75,19 @@ fn main() {
     for line in stdin.lock().lines() {
         match line {
             Ok(line) => {
+
                 if line.trim().is_empty() {
                     print!("$ ");
                     stdout.flush().unwrap();
                     continue;
                 }
+
                 let command_result = command_execute(&line);
+
                 if command_result == "exit" {
                     break;
                 }
+                
                 print!("$ ");
                 stdout.flush().unwrap();
             }
@@ -61,34 +95,8 @@ fn main() {
                 println!("Error reading input");
             }
         }
-
-
-        // match line {
-        //     Ok(line) => {
-        //         if line.trim().is_empty() {
-        //             print!("$ ");
-        //             stdout.flush().unwrap();
-        //             continue;
-        //         }
-        //         if line.trim() == "exit" {
-        //             break;
-        //         } else {
-        //             println!("{}: command not found", line);
-        //         }
-        //         print!("$ ");
-        //         stdout.flush().unwrap();
-        //     }
-        //     Err(_) => {
-        //         println!("Error reading input");
-        //     }
-        // }
         
 
     }
 
-
-
-
-    
-    
 }
