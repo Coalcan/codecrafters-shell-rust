@@ -2,6 +2,10 @@
 use std::io::{self, Write, BufRead};
 use std::collections::HashSet;
 use std::sync::OnceLock;
+use pathsearch::find_executable_in_path;
+
+//path environment variable for external commands
+
 
 static SHELL_COMMANDS: OnceLock<HashSet<&str>> = OnceLock::new();
 
@@ -15,8 +19,8 @@ fn get_shell_commands() -> &'static HashSet<&'static str> {
     })
 }
 
-
-
+//check for implicit copies in momeory to optimize for memory usage and performance
+//look into flame graphs to identify bottlenecks in the code and optimize them
 
 fn command_execute(command: &str) -> &str {
 //create pattern to match string to different commands
@@ -35,17 +39,40 @@ fn command_execute(command: &str) -> &str {
             return "echo"
         }
         Some("type") => {
+            //embed
             if let Some(command) = words.get(1) {
+
                 if get_shell_commands().contains(command) {
+
                     println!("{} is a shell builtin", command);
                     return "type"
-                } else {
+
+                } if let Some(path) = find_executable_in_path(command) {
+
+                    println!("{} is {}", command, path.display());
+                    return "type"
+
+                }
+
+                //add in search for external commands in the PATH environment variable
+                //shell must go through every directory in PATH. For each directory:
+                //Check if a file with the command name exists.
+                //Check if the file has execute permissions.
+                //If the file exists and has execute permissions, print <command> is <full_path> and stop.
+                //If the file exists but lacks execute permissions, skip it and continue to the next directory.
+
+
+                else {
+
                     println!("{}: not found", command);
                     return "invalid"
+
                 }
             } else {
+
                 println!("type: missing argument");
                 return "invalid"
+
             }
         }
         Some(_) => {
