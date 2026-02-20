@@ -16,6 +16,7 @@ fn get_shell_commands() -> &'static HashSet<&'static str> {
             "exit",
             "echo",
             "type",
+            "pwd",
         ])
     })
 }
@@ -35,6 +36,7 @@ fn command_execute(command: &str) -> std::io::Result<()>{
             .args(&parts[1..])
             .output()?;
 
+        //printing extra $ no clue how to fix
         print!("{}", String::from_utf8_lossy(&output.stdout));
         if !output.status.success() {
             eprint!("{}", String::from_utf8_lossy(&output.stderr));
@@ -45,7 +47,7 @@ fn command_execute(command: &str) -> std::io::Result<()>{
     //execute the command and print the output
     //use std::process::Command to execute the command
     //capture the output and print it to the console
-    //handle errors gracefully and print error messages to the console
+    //handle errors
 }
 
 
@@ -64,6 +66,13 @@ fn command_validate(command: &str) -> &str {
         Some("echo") => {
             println!("{}", &words[1..].join(" "));
             return "echo"
+        }
+        Some("pwd") => {
+            match std::env::current_dir() {
+                Ok(path) => println!("{}", path.display()),
+                Err(e) => eprintln!("Error getting current directory: {}", e),
+            }
+            return "pwd"
         }
         Some("type") => {
             //embed
