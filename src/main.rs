@@ -3,6 +3,7 @@ use std::io::{self, Write, BufRead};
 use std::collections::HashSet;
 use std::sync::OnceLock;
 use pathsearch::find_executable_in_path;
+use std::process::Command;
 
 //path environment variable for external commands
 
@@ -19,10 +20,36 @@ fn get_shell_commands() -> &'static HashSet<&'static str> {
     })
 }
 
-//check for implicit copies in momeory to optimize for memory usage and performance
+//check for implicit copies in memory to optimize for memory usage and performance
 //look into flame graphs to identify bottlenecks in the code and optimize them
+fn command_execute(command: &str) -> std::io::Result<()>{
 
-fn command_execute(command: &str) -> &str {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+
+    if parts.is_empty() {
+        Ok(())
+    } 
+    else {
+
+        let output: std::process::Output = Command::new(parts[0])
+            .args(&parts[1..])
+            .output()?;
+
+        print!("{}", String::from_utf8_lossy(&output.stdout));
+        if !output.status.success() {
+            eprint!("{}", String::from_utf8_lossy(&output.stderr));
+        }
+        Ok(())
+    }
+
+    //execute the command and print the output
+    //use std::process::Command to execute the command
+    //capture the output and print it to the console
+    //handle errors gracefully and print error messages to the console
+}
+
+
+fn command_validate(command: &str) -> &str {
 //create pattern to match string to different commands
 //split the commadn its a vector of string splices
 //let command: Vec<&str> = s.split(' ').collect()
@@ -76,8 +103,7 @@ fn command_execute(command: &str) -> &str {
             }
         }
         Some(_) => {
-            println!("{}: not found", command);
-            return "invalid"
+            return "unknown"
         }
         None => {
             println!("Empty command");
@@ -109,10 +135,22 @@ fn main() {
                     continue;
                 }
 
-                let command_result = command_execute(&line);
+                let command_result = command_validate(&line);
 
-                if command_result == "exit" {
-                    break;
+
+                //handle command results that require a change in the shell state.
+
+                match command_result {
+                    "exit" => {
+                        break;
+                    }
+                    "unknown" => {
+                        if let Err(_) = command_execute(&line) {
+                            println!("{}: not found", line.split_whitespace().next().unwrap_or(""));
+                        }
+                    }
+                    //pattern must be exaustive 
+                    _ => {}
                 }
                 
                 print!("$ ");
